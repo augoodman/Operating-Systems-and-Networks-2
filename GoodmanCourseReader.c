@@ -149,23 +149,52 @@ Course* readCourses(FILE* file){
 }
 
 Assign* readAssigns(FILE* file, int numAssigns){
-    int i;
+    int i, j;
+    Assign temp;
     courses->assignments = (Assign*)malloc(courses->numAssign * sizeof(Assign));
     for(i = 0; i < courses->numAssign; i++)
         fscanf(file, "%d %s", &courses->assignments[i].assignID,
                courses->assignments[i].assignName);
+    for (i = 0; i < courses->numAssign; i++) {
+        for (j = i + 1; j < courses->numAssign; j++) {
+            if (courses->assignments[i].assignID > courses->assignments[j].assignID) {
+                temp = courses->assignments[i];
+                courses->assignments[i] = courses->assignments[j];
+                courses->assignments[j] = temp;
+            }
+        }
+    }
     readScores(file, courses->numAssign);
     return courses->assignments;
 }
 
 ScoreStruct** readScores(FILE* file, int numAssigns){
-    int i;
+    int i, j;
+    ScoreStruct temp;
     courses->scores = (ScoreStruct *) malloc(numStudents * courses->numAssign *
              sizeof(ScoreStruct));
     for (i = 0; i < numStudents * courses->numAssign; i++)
         fscanf(file, "%d %d %f %s", &courses->scores[i].assignID,
                &courses->scores[i].studentID, &courses->scores[i].score,
                courses->scores[i].comment);
+    for (i = 0; i < numStudents * courses->numAssign; i++) {
+        for (j = i + 1; j < numStudents * courses->numAssign; j++) {
+            if (courses->scores[i].assignID > courses->scores[j].assignID) {
+                temp = courses->scores[i];
+                courses->scores[i] = courses->scores[j];
+                courses->scores[j] = temp;
+            }
+        }
+    }
+    for (i = 0; i < numStudents * courses->numAssign; i++) {
+        for (j = i + 1; j < numStudents * courses->numAssign; j++) {
+            if (courses->scores[i].studentID > courses->scores[j].studentID) {
+                temp = courses->scores[i];
+                courses->scores[i] = courses->scores[j];
+                courses->scores[j] = temp;
+            }
+        }
+    }
     return &courses->scores;
 }
 
@@ -229,13 +258,12 @@ void printGrades(ScoreStruct* scores, int numAssigns){
     int i;
     printf("Grade Data:\n");
     for(i = 0; i < numStudents * numAssigns; i++) {
-        printf("  %d %d %d %s\n", scores[i].studentID, scores[i].assignID,
-               (int)scores[i].score, scores[i].comment);
+        printf("  %d %d %.2f %s\n", scores[i].studentID, scores[i].assignID,
+               scores[i].score, scores[i].comment);
     }
 }
 
 void printCourse(Course course){
-    int i;
     printf("\nCourse ID: %d\n", course.courseID);
     printf("Course Name: %s\n", course.courseName);
     printf("Teacher: %s\n", course.instructorName);
@@ -361,31 +389,71 @@ void studentMenu(Course course){
 }
 
 void getStudentScores(Course course, int studentNo){
-    int i, j;
-    char** assignNames;
+    int i, j, index = 0;
+    ScoreStruct* s;
+    Assign* a;
+    Assign temp;
     float total = 0;
     int numScores = 0;
     studentNo--;
     printf("\n%s's assignment specific grades were:\n", students[studentNo].studentName);
     printf("\n  Assign Name     Score           Comment\n");
     printf("-----------------------------------------------\n");
+    a = malloc(course.numAssign * sizeof(Assign));
+    s = malloc(course.numAssign * sizeof(ScoreStruct));
     for(i = 0; i < numStudents * course.numAssign; i++){
         if(course.scores[i].studentID == studentNo + 1) {
             for(j = 0; j < course.numAssign; j++){
-                if(course.assignments[j].assignID == course.scores[i].assignID && course.scores[i].score == 100)
-                    printf("  %s           %.2f          %s\n", course.assignments[j].assignName,
-                           course.scores[i].score, course.scores[i].comment);
-                else if(course.assignments[j].assignID == course.scores[i].assignID && course.scores[i].score < 10)
-                    printf("  %s           %.2f            %s\n", course.assignments[j].assignName,
-                           course.scores[i].score, course.scores[i].comment);
-                else if(course.assignments[j].assignID == course.scores[i].assignID)
-                    printf("  %s           %.2f           %s\n", course.assignments[j].assignName,
-                           course.scores[i].score, course.scores[i].comment);
-                total += course.scores[i].score;
-                numScores++;
+                if(course.assignments[j].assignID == course.scores[i].assignID){
+                    s[index] = course.scores[i];
+                    a[index] = course.assignments[j];
+                    index++;
+                }
             }
         }
     }
+    for(i = 0; i < course.numAssign; i++) {
+        for(j = i + 1; j < course.numAssign ; j++){
+            if(strcmp(a[i].assignName, a[j].assignName) > 0){
+                temp = a[i];
+                a[i] = a[j];
+                a[j] = temp;
+            }
+        }
+    }
+    for(i = 0; i < course.numAssign; i++){
+        for(j = 0; j < course.numAssign; j++){
+            if(a[j].assignID == s[i].assignID && s[i].score == 100)
+                printf("  %s           %.2f          %s\n", a[j].assignName,
+                       s[i].score, s[i].comment);
+            else if(a[j].assignID == s[i].assignID && s[i].score < 10)
+                printf("  %s           %.2f            %s\n", a[j].assignName,
+                       s[i].score, s[i].comment);
+            else if(a[i].assignID == s[j].assignID)
+                printf("  %s           %.2f           %s\n", a[i].assignName,
+                       s[j].score, s[j].comment);
+            total += s[i].score;
+            numScores++;
+        }
+    }
+
+    /*for(i = 0; i < course.numAssign; i++){
+        if(s[i].studentID == studentNo + 1) {
+            for(j = 0; j < course.numAssign; j++){
+                if(a[j].assignID == s[i].assignID && s[i].score == 100)
+                    printf("  %s           %.2f          %s\n", a[j].assignName,
+                           s[i].score, s[i].comment);
+                else if(a[j].assignID == s[i].assignID && s[i].score < 10)
+                    printf("  %s           %.2f            %s\n", a[j].assignName,
+                           s[i].score, s[i].comment);
+                else if(a[j].assignID == s[i].assignID)
+                    printf("  %s           %.2f           %s\n", a[j].assignName,
+                           s[i].score, s[i].comment);
+                total += s[i].score;
+                numScores++;
+            }
+        }
+    }*/
     float average = total / numScores;
     printf("\n%s's final grade was %.2f.\n", students[studentNo].studentName, average);
 }
@@ -416,12 +484,11 @@ void getAssignmentScore(Course course, int assignmentNo){
     for(i = 0; i < course.numAssign; i++)
         if(course.assignments[i].assignID == assignmentNo)
             name = course.assignments[i].assignName;
-    for(i = 0; i < numStudents * course.numAssign; i++){
+    for(i = 0; i < numStudents * course.numAssign; i++)
         if(course.scores[i].assignID == assignmentNo){
             total += course.scores[i].score;
             numScores++;
         }
-    }
     float average = total / numScores;
     printf("\nThe average grade on %s was %.2f.\n", name, average);
 }
@@ -452,15 +519,18 @@ void performInstructions(char* iFile){
         else {
             float* s;
             char a[100];
-            int j,k;
-            for(j = 0; j < numStudents * courses[input[(i * 3) + 1] - 1].numAssign; j++){
+            int j, k, l;
+            for(j = 0; j < numStudents * courses[input[(i * 3) + 1] - 1].numAssign; j++)
                 if(courses[input[(i * 3) + 1] - 1].scores[j].studentID == input[(i * 3) + 2])
                     for(k = 0; k < 2; k++)
-                        if(courses[input[(i * 3) + 1] - 1].assignments[k].assignID == input[(i * 3) + 3]){
-                            s = &courses[input[(i * 3) + 1] - 1].scores[j].score;
-                            strcpy(a, courses[input[(i * 3) + 1] - 1].assignments[k].assignName);
-                        }
-            }
+                        if(courses[input[(i * 3) + 1] - 1].assignments[k].assignID == input[(i * 3) + 3])
+                            for (l = 0; l < courses[input[(i * 3) + 1] - 1].numAssign; l++)
+                                if (courses[input[(i * 3) + 1] - 1].scores[l].assignID == input[(i * 3) + 3]) {
+                                    s = &courses[input[(i * 3) + 1] - 1].scores[l].score;
+                                    strcpy(a, courses[input[(i * 3) + 1] - 1].assignments[k].assignName);
+                                }
+
+
             printf("\nStudent with name %s received a %.2f on assignment %s\n",
                    students[input[(i * 3) + 2] - 1].studentName, *s, a);
         }
