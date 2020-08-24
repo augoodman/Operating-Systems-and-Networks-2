@@ -2,7 +2,7 @@
 * File:   GoodmanCourseReader.c
 * Query student, course, and grade data from a text file.
 *
-* Completion time: 
+* Completion time:  20 hours
 * 
 * @author Goodman, Acuna
 * @version 2020.08.21
@@ -112,7 +112,7 @@ void printUsage();
 
 /**
 * Loads data from student/course data file
-* @param filename is the name of the file 
+* @param filename is the name of the file
 */
 void readFile(char* filename){
     FILE* file = fopen(filename, "r");
@@ -122,10 +122,10 @@ void readFile(char* filename){
     fclose(file);
 }
 
-void readString(FILE* file, char** dst, int max_length){
-
-}
-
+/**
+* Loads data from student portion of data file
+* @param file is the file pointer
+*/
 Student* readStudents(FILE* file){
     int i;
     fscanf(file, "%d", &numStudents);
@@ -136,6 +136,10 @@ Student* readStudents(FILE* file){
     return students;
 }
 
+/**
+* Loads data from course portion of data file
+* @param file is the file pointer
+*/
 Course* readCourses(FILE* file){
     int i;
     fscanf(file, "%d", &numCourses);
@@ -148,6 +152,11 @@ Course* readCourses(FILE* file){
     return courses;
 }
 
+/**
+* Loads data from assignment portion of course data in data file
+* @param file is the file pointer
+* @param numAssigns is the number of assignments in a course
+*/
 Assign* readAssigns(FILE* file, int numAssigns){
     int i, j;
     Assign temp;
@@ -155,19 +164,22 @@ Assign* readAssigns(FILE* file, int numAssigns){
     for(i = 0; i < courses->numAssign; i++)
         fscanf(file, "%d %s", &courses->assignments[i].assignID,
                courses->assignments[i].assignName);
-    for (i = 0; i < courses->numAssign; i++) {
-        for (j = i + 1; j < courses->numAssign; j++) {
+    for (i = 0; i < courses->numAssign; i++)
+        for (j = i + 1; j < courses->numAssign; j++)
             if (courses->assignments[i].assignID > courses->assignments[j].assignID) {
                 temp = courses->assignments[i];
                 courses->assignments[i] = courses->assignments[j];
                 courses->assignments[j] = temp;
             }
-        }
-    }
     readScores(file, courses->numAssign);
     return courses->assignments;
 }
 
+/**
+* Loads data from scores portion of course data in data file
+* @param file is the file pointer
+* @param numAssigns is the number of assignments in a course
+*/
 ScoreStruct** readScores(FILE* file, int numAssigns){
     int i, j;
     ScoreStruct temp;
@@ -177,27 +189,26 @@ ScoreStruct** readScores(FILE* file, int numAssigns){
         fscanf(file, "%d %d %f %s", &courses->scores[i].assignID,
                &courses->scores[i].studentID, &courses->scores[i].score,
                courses->scores[i].comment);
-    for (i = 0; i < numStudents * courses->numAssign; i++) {
-        for (j = i + 1; j < numStudents * courses->numAssign; j++) {
+    for (i = 0; i < numStudents * courses->numAssign; i++)
+        for (j = i + 1; j < numStudents * courses->numAssign; j++)
             if (courses->scores[i].assignID > courses->scores[j].assignID) {
                 temp = courses->scores[i];
                 courses->scores[i] = courses->scores[j];
                 courses->scores[j] = temp;
             }
-        }
-    }
-    for (i = 0; i < numStudents * courses->numAssign; i++) {
-        for (j = i + 1; j < numStudents * courses->numAssign; j++) {
+    for (i = 0; i < numStudents * courses->numAssign; i++)
+        for (j = i + 1; j < numStudents * courses->numAssign; j++)
             if (courses->scores[i].studentID > courses->scores[j].studentID) {
                 temp = courses->scores[i];
                 courses->scores[i] = courses->scores[j];
                 courses->scores[j] = temp;
             }
-        }
-    }
     return &courses->scores;
 }
 
+/**
+* Calls destructor functions to free memory and exits program
+*/
 void terminate(){
     //FREE EVERYTHING HERE
     int i;
@@ -210,22 +221,37 @@ void terminate(){
     exit(1);
 }
 
+/**
+* Frees student struct memory
+*/
 void studentsDestructor(){
     free(students);
 }
 
+/**
+* Frees course struct memory
+*/
 void coursesDestructor(){
     free(courses);
 }
 
+/**
+* Frees assignment struct memory
+*/
 void assignsDestructor(Assign** assigns, int numAssigns){
     free(*assigns);
 }
 
+/**
+* Frees score struct memory
+*/
 void scoresDestructor(ScoreStruct** scores, int numAssigns){
     free(*scores);
 }
 
+/**
+* Converts level enum to appropriate strings and prints student data to console
+*/
 void printStudents(){
     int i;
     char* level;
@@ -246,23 +272,35 @@ void printStudents(){
     }
 }
 
+/**
+* Prints assignment data to console
+* @param assigns is the array of assignment structs to be printed
+* @param numAssigns is the number of assignments in a course
+*/
 void printAssigns(Assign* assigns, int numAssigns){
     int i;
     printf("Assigns:\n");
-    for(i = 0; i < numAssigns; i++) {
+    for(i = 0; i < numAssigns; i++)
         printf("  %d %s\n", assigns[i].assignID, assigns[i].assignName);
-    }
 }
 
+/**
+* Prints grade data to console
+* @param scores is the array of score structs to be printed
+* @param numAssigns is the number of assignments in a course
+*/
 void printGrades(ScoreStruct* scores, int numAssigns){
     int i;
     printf("Grade Data:\n");
-    for(i = 0; i < numStudents * numAssigns; i++) {
+    for(i = 0; i < numStudents * numAssigns; i++)
         printf("  %d %d %.2f %s\n", scores[i].studentID, scores[i].assignID,
                scores[i].score, scores[i].comment);
-    }
 }
 
+/**
+* Prints course data to console
+* @param course is the course struct to be printed
+*/
 void printCourse(Course course){
     printf("\nCourse ID: %d\n", course.courseID);
     printf("Course Name: %s\n", course.courseName);
@@ -282,10 +320,9 @@ _Noreturn void mainMenu(){
         printf("Course Options");
         printf("\n-----------------------------------\n");
         int i;
-        for(i = 0; i < numCourses; i++){
+        for(i = 0; i < numCourses; i++)
             //FOR YOU TO IMPLEMENT
             printf("   %d %s\n", courses[i].courseID, courses[i].courseName);
-        }
         printf("   0 REPEAT OPTIONS\n");
         printf("  -1 TERMINATE PROGRAM\n");
         printf("Please enter your choice ---> ");
@@ -309,9 +346,9 @@ void mainMenuBranch(int option){
     if(option == -1){
         printf("Terminating program...\n");
         terminate();
-    } else if (option == 0) {
+    } else if (option == 0)
         printf("Repeating options...\n");
-    } else {
+    else {
         Course course = courses[option - 1];
         //FOR YOU TO IMPLEMENT
         printf("Course with name %s selected.\n", course.courseName);
@@ -321,9 +358,8 @@ void mainMenuBranch(int option){
 
 /**
 * Implements sub menu functionality, which allows users to select how they want to interact with course
-* @course is the course to be queried
+* @course is the course struct to be queried
 */
-
 void subMenu(Course course){
     int input_buffer;
     do {
@@ -358,22 +394,25 @@ void subMenuBranch(int option, Course course){
     if(option == -2){
         printf("Terminating program...\n");
         terminate();
-    } else if (option == -1){
+    } else if (option == -1)
         printf("Returning to previous menu...\n");
-    } else if (option == 0){
+    else if (option == 0)
         printf("Repeating options...\n");
-    } else if (option == 1){
+    else if (option == 1)
         //FOR YOU TO IMPLEMENT
         studentMenu(course);
-    } else if (option == 2){
+    else if (option == 2)
         //FOR YOU TO IMPLEMENT
         assignmentMenu(course);
-    } else if (option == 3){
+    else if (option == 3)
         //FOR YOU TO IMPLEMENT
         printCourse(course);
-    }
 }
 
+/**
+* Handles student menu options
+* @param course is the course struct to be queried
+*/
 void studentMenu(Course course){
     int input_buffer;
     do {
@@ -388,6 +427,11 @@ void studentMenu(Course course){
     } while (1);
 }
 
+/**
+* Handles student menu options
+* @param course is the course struct to be queried
+* @param studentNo identifies the student struct to queried
+*/
 void getStudentScores(Course course, int studentNo){
     int i, j, index = 0;
     ScoreStruct* s;
@@ -401,27 +445,22 @@ void getStudentScores(Course course, int studentNo){
     printf("-----------------------------------------------\n");
     a = malloc(course.numAssign * sizeof(Assign));
     s = malloc(course.numAssign * sizeof(ScoreStruct));
-    for(i = 0; i < numStudents * course.numAssign; i++){
-        if(course.scores[i].studentID == studentNo + 1) {
-            for(j = 0; j < course.numAssign; j++){
+    for(i = 0; i < numStudents * course.numAssign; i++)
+        if(course.scores[i].studentID == studentNo + 1)
+            for(j = 0; j < course.numAssign; j++)
                 if(course.assignments[j].assignID == course.scores[i].assignID){
                     s[index] = course.scores[i];
                     a[index] = course.assignments[j];
                     index++;
                 }
-            }
-        }
-    }
-    for(i = 0; i < course.numAssign; i++) {
-        for(j = i + 1; j < course.numAssign ; j++){
+    for(i = 0; i < course.numAssign; i++)
+        for(j = i + 1; j < course.numAssign ; j++)
             if(strcmp(a[i].assignName, a[j].assignName) > 0){
                 temp = a[i];
                 a[i] = a[j];
                 a[j] = temp;
             }
-        }
-    }
-    for(i = 0; i < course.numAssign; i++){
+    for(i = 0; i < course.numAssign; i++)
         for(j = 0; j < course.numAssign; j++){
             if(a[j].assignID == s[i].assignID && s[i].score == 100)
                 printf("  %s           %.2f          %s\n", a[j].assignName,
@@ -435,22 +474,24 @@ void getStudentScores(Course course, int studentNo){
             total += s[i].score;
             numScores++;
         }
-    }
     float average = total / numScores;
     printf("\n%s's final grade was %.2f.\n", students[studentNo].studentName, average);
     free(a);
     free(s);
 }
 
+/**
+* Handles assignment menu options
+* @param course is the course struct to be queried
+*/
 void assignmentMenu(Course course){
     int input_buffer;
     do {
         printf("\nPlease choose from the following assignments:\n");
         int i;
-        for(i = 0; i < course.numAssign; i++){
+        for(i = 0; i < course.numAssign; i++)
             printf("  %d %s\n", course.assignments[i].assignID,
                    course.assignments[i].assignName);
-        }
         printf("  0 RETURN TO PREVIOUS MENU\n");
         printf("Please enter your choice ---> ");
         scanf(" %d", &input_buffer);
@@ -460,6 +501,11 @@ void assignmentMenu(Course course){
     } while (1);
 }
 
+/**
+* Handles student menu options
+* @param course is the course struct to be queried
+* @param assignmentNo identifies the assignment struct to queried
+*/
 void getAssignmentScore(Course course, int assignmentNo){
     int i;
     char* name;
@@ -477,6 +523,10 @@ void getAssignmentScore(Course course, int assignmentNo){
     printf("\nThe average grade on %s was %.2f.\n", name, average);
 }
 
+/**
+* Performs instructions from instruction file to query data from a data file
+* @param iFile is the name of the file
+*/
 void performInstructions(char* iFile){
     FILE* file = fopen(iFile, "r");
     int i, numInst;
@@ -487,19 +537,15 @@ void performInstructions(char* iFile){
     for(i = 0; i < size/2; i++)
         fscanf(file, "%d", &input[i]);
     numInst = input[0];
-
     for(i = 0; i < numInst; i++){
         printf("\nProcessing instruction with courseNum %d, studentNum %d, and assignmentNum %d",
                input[(i * 3) + 1], input[(i * 3) + 2], input[(i * 3) + 3]);
-        if(input[(i * 3) + 2] == 0 && input[(i * 3) + 3] == 0){
+        if(input[(i * 3) + 2] == 0 && input[(i * 3) + 3] == 0)
             printCourse(courses[input[(i * 3) + 1] - 1]);
-        }
-        else if(input[(i * 3) + 2] == 0 && input[(i * 3) + 3] != 0) {
+        else if(input[(i * 3) + 2] == 0 && input[(i * 3) + 3] != 0)
             getAssignmentScore(courses[input[(i * 3) + 1] - 1], input[(i * 3) + 3]);
-        }
-        else if(input[(i * 3) + 2] != 0 && input[(i * 3) + 3] == 0) {
+        else if(input[(i * 3) + 2] != 0 && input[(i * 3) + 3] == 0)
             getStudentScores(courses[input[(i * 3) + 1] - 1], input[(i * 3) + 2]);
-        }
         else {
             float* s;
             char a[100];
@@ -513,13 +559,10 @@ void performInstructions(char* iFile){
                                     s = &courses[input[(i * 3) + 1] - 1].scores[l].score;
                                     strcpy(a, courses[input[(i * 3) + 1] - 1].assignments[k].assignName);
                                 }
-
-
             printf("\nStudent with name %s received a %.2f on assignment %s\n",
                    students[input[(i * 3) + 2] - 1].studentName, *s, a);
         }
     }
-
     printf("\nEnd of instructions reached. Terminating.\n");
     fclose(file);
     terminate();
@@ -534,11 +577,14 @@ void print_usage(){
     printf("-i refers to the optionally supported 'instruction file' that provides directions for how the program should execute without CLI input; \n\t must be a valid .txt.file\n");
 }
 
+/**
+* main
+*/
 int main(int argc, char* argv[]){
     char* datafile;
     char* instructionfile;
     int opt;
-    while((opt = getopt(argc, argv, ":d:i:")) != -1){
+    while((opt = getopt(argc, argv, ":d:i:")) != -1)
         switch(opt){
             case 'd':
                 datafile = optarg;
@@ -553,11 +599,8 @@ int main(int argc, char* argv[]){
                 printf("unknown option: %c\n", optopt);
                 break;
         }
-    }
-    for (; optind < argc; optind++){
+    for (; optind < argc; optind++)
         printf("Given extra arguments: %s\n", argv[optind]);
-    }
-
     int dflen;
     if(datafile != NULL){
         dflen = strlen(datafile);
@@ -576,7 +619,6 @@ int main(int argc, char* argv[]){
         print_usage();
         exit(1);
     }
-
     int iflen;
     int ifval;
     if(instructionfile != NULL){
@@ -598,5 +640,4 @@ int main(int argc, char* argv[]){
     }
     return 0;
 }
-
 #endif
