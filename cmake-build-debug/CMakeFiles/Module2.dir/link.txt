@@ -1,0 +1,1 @@
+/usr/bin/cc -g   CMakeFiles/Module2.dir/GoodmanCourseReader.c.o  -o Module2 

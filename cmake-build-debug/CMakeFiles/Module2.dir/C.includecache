@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/andrew/CLionProjects/Module2/GoodmanCourseReader.c
+stdlib.h
+-
+stdio.h
+-
+string.h
+-
+unistd.h
+-
+
