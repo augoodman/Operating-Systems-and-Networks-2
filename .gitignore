@@ -13,6 +13,7 @@
 *.o
 *.so
 *.so
+reader
 
 # Packages #
 ############
