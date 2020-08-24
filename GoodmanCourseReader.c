@@ -436,26 +436,10 @@ void getStudentScores(Course course, int studentNo){
             numScores++;
         }
     }
-
-    /*for(i = 0; i < course.numAssign; i++){
-        if(s[i].studentID == studentNo + 1) {
-            for(j = 0; j < course.numAssign; j++){
-                if(a[j].assignID == s[i].assignID && s[i].score == 100)
-                    printf("  %s           %.2f          %s\n", a[j].assignName,
-                           s[i].score, s[i].comment);
-                else if(a[j].assignID == s[i].assignID && s[i].score < 10)
-                    printf("  %s           %.2f            %s\n", a[j].assignName,
-                           s[i].score, s[i].comment);
-                else if(a[j].assignID == s[i].assignID)
-                    printf("  %s           %.2f           %s\n", a[j].assignName,
-                           s[i].score, s[i].comment);
-                total += s[i].score;
-                numScores++;
-            }
-        }
-    }*/
     float average = total / numScores;
     printf("\n%s's final grade was %.2f.\n", students[studentNo].studentName, average);
+    free(a);
+    free(s);
 }
 
 void assignmentMenu(Course course){
